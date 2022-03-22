@@ -30,17 +30,20 @@ void genCase(int n, int maxedge){
 }
 
 void printCase(tcase &tc){
-    cout << tc.size() << "\n";
+    ofstream res("input.in");
+    res << tc.size() << "\n";
     for(auto &row : tc) {
-        for(auto x : row) cout << x << " ";
-        cout << "\n";
+        for(auto x : row) res << x << " ";
+        res << "\n";
     }
 }
 
-int main(){
+int main(int argc, char *argv[]){
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);
-    genCase(3000, 1e9);
+    int n = stoi(argv[1]);
+    srand(n);
+    genCase(n, 1e9);
 
     for(auto &tc : cases) printCase(tc);
 

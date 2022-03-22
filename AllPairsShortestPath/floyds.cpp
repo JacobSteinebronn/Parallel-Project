@@ -15,7 +15,7 @@ template<class T, class U> ostream& operator<<(ostream &os, pair<T, U>& p) { os 
 template<class T> ostream& operator<<(ostream& os, vector<T>& vec) { os << "["; for(auto x : vec) os << x << " "; os << "]"; return os; }
 ll oo = ll(1e15);
 
-const int MAXN = 500;
+const int MAXN = 5000;
 ll adj[MAXN][MAXN];
 
 

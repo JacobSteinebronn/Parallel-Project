@@ -29,8 +29,6 @@ int main(){
 
     // APSP HERE
     rep(k, 0, n) {
-        cerr << "\r" << k;
-        cerr.flush();
         rep(i, 0, n) rep(j, 0, n)
             if(adj[i][k] + adj[k][j] < adj[i][j]) adj[i][j] = adj[i][k] + adj[k][j];
     }
