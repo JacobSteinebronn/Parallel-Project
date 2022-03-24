@@ -5,7 +5,7 @@ using ll = long long;
 
 const ll BIG = 1e18;
 
-int numNodes, numEdges, startNode;
+int numNodes, numEdges, sourceNode;
 vector<tuple<int, int, ll>> edges;
 
 vector<ll> dist;
@@ -13,7 +13,7 @@ vector<ll> dist;
 vector<ll> getDistances(){
     dist = vector<ll>(numNodes, BIG);
 
-    dist[startNode] = 0;
+    dist[sourceNode] = 0;
 
     for(int iteration = 0; iteration < numNodes - 1; ++iteration){
         for(auto [u, v, w] : edges){
@@ -27,7 +27,7 @@ vector<ll> getDistances(){
 int main(){
     cin >> numNodes >> numEdges;
 
-    startNode = 0;
+    sourceNode = 0;
 
     edges = vector<tuple<int, int, ll>>(numEdges);
     for(int edgeID = 0; edgeID < numEdges; ++edgeID){

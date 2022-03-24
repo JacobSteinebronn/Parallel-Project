@@ -8,7 +8,7 @@ const ll BIG = 1e18;
 // default value of numThreads
 int numThreads = 10;
 
-int numNodes, numEdges, startNode;
+int numNodes, numEdges, sourceNode;
 vector<tuple<int, int, ll>> edges;
 
 vector<ll> dist;
@@ -36,7 +36,7 @@ vector<ll> getDistances(){
         locks[node] = new mutex();
     }
 
-    dist[startNode] = 0;
+    dist[sourceNode] = 0;
 
     int numHandledByEachThread = numEdges / numThreads;
 
@@ -72,7 +72,7 @@ int main(int argc, char **argv){
 
     cin >> numNodes >> numEdges;
 
-    startNode = 0;
+    sourceNode = 0;
 
     edges = vector<tuple<int, int, ll>>(numEdges);
     for(int edgeID = 0; edgeID < numEdges; ++edgeID){
