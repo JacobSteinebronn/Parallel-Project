@@ -20,22 +20,22 @@ ll adj[MAXN][MAXN];
 ll res[MAXN][MAXN];
 
 int n;
-typedef pair<ll, int> st;
-typedef priority_queue<st, vector<st>, greater<st>> dpq;
+typedef pair<ll, int> state;
+typedef priority_queue<state, vector<state>, greater<state>> dpq;
 
-void dijkstra(int st) {
-    rep(i, 0, n) res[st][i] = oo;
-    res[st][st] = 0;
+void dijkstra(int start) {
+    for(int i = 0; i < n; i++) res[start][i] = oo;
+    res[start][start] = 0;
     dpq pq;
-    pq.emplace(0, st);
+    pq.emplace(0, start);
     
     while(pq.size()) {
         auto [d, u] = pq.top(); pq.pop();
-        if(d > res[st][u]) continue;
-        rep(v, 0, n) {
-            if(v != u && res[st][v] > d + adj[u][v]) {
-                res[st][v] = d + adj[u][v];
-                pq.emplace(res[st][v], v);
+        if(d > res[start][u]) continue;
+        for(int v = 0; v < n; v++) {
+            if(v != u && res[start][v] > d + adj[u][v]) {
+                res[start][v] = d + adj[u][v];
+                pq.emplace(res[start][v], v);
             }
         }
     }

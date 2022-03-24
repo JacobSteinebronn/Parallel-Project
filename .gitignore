@@ -1,2 +1,2 @@
-./AllPairsShortestPath/big_adj/*.in
-./AllPairsShortestPath/big_adj/*.out
+*.in
+*.out
