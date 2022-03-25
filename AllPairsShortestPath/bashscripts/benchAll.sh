@@ -9,7 +9,7 @@ do
 done
 echo ""
 
-reps=5
+reps=1
 
 for f in final_implementations/*.cpp
 do
@@ -21,7 +21,7 @@ do
         big_adj/gen.out $i
         mv ./input.in big_adj/input.in
         start_time=$(date +%s.%3N)
-        for j in {1..5}
+        for j in {1..1}
         do
             ./a.out < big_adj/input.in 20 > /dev/null 
         done

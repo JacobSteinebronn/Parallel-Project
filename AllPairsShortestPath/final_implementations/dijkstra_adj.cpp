@@ -50,7 +50,6 @@ int main(){
 
     // APSP HERE
     rep(i, 0, n) {
-        cerr << "\r" << i;
         cerr.flush();
         dijkstra(i);
     }
@@ -61,7 +60,6 @@ int main(){
         for(int j = 0; j < n; j++) cout << res[i][j] << " ";
         cout << "\n";
     } 
-    cerr << "\r"; cerr.flush();
 
     return 0;
 }
