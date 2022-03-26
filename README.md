@@ -9,3 +9,22 @@ There's also some bash scripts in /AllPairsShortestPath/bashscripts. The most us
 Prim's Minimum Spanning Tree:
 Everything is contained in /PrimsMST/
 If you want to compile par_prims.cpp do so with g++ -fopenmp <programname> -std=c++20. On execution you can specify the max number of threads to be used through the first argument (defaults to 4). seq_prims.cpp and weighted_graph.cpp can be compiled with just g++ <programname> -std=c++20.
+
+Disjoint Set Union:
+Everything is contained in /DisjointSetUnion/
+To compile ConcurrentDisjointSetUnionLinkByIndexAndSplitting.cpp, use:
+  
+```g++ -std=c++17 -pthread -O2 -o ConcurrentDisjointSetUnionLinkByIndexAndSplitting ConcurrentDisjointSetUnionLinkByIndexAndSplitting.cpp```
+
+And then to run it, use:
+  
+```./ConcurrentDisjointSetUnionLinkByIndexAndSplitting```
+
+To compile SequentialDisjointSetUnion.cpp, use:
+  
+```g++ -std=c++17 -O2 -o SequentialDisjointSetUnion SequentialDisjointSetUnion.cpp```
+
+And then to run it, use:
+  
+```./SequentialDisjointSetUnion```
+
