@@ -58,7 +58,7 @@
 \begin{abstract}
 This document is a model and instructions for \LaTeX.
 This and the IEEEtran.cls file define the components of your paper [title, text, heads, etc.]. *CRITICAL: Do Not Use Symbols, Special Characters, Footnotes, 
-or Math in Paper Title or Abstract. WIP
+or Math in Paper Title or Abstract.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -199,6 +199,85 @@ WIP
     label=
 ]{./src/bellman_ford.cpp}
 
+\section{The Disjoint Set Union Problem}
+
+\subsection{Problem Definition}
+The Disjoint Set Union, alternatively called the Union Find Problem, is to maintain several disjoint sets with the ability to merge these disjoint sets together and determine if different items are in the same set. This can be achieved by maintaining a unique representative for each disjoint set. When we union two sets, we make the representative of one set the representative of the other set, thus uniting the sets into one.
+
+Such a data structure that can do this should support the following operations: \\ \\
+$find(x)$: Find and return the representative of the set that contains $x$. \\ \\
+$unite(x, y)$: Get the representative of the set containing $x$ and the representative of the set containing $y$. If the representatives are the same, they are in the same set, otherwise, combine the sets by setting the representative of one of the two representatives to the other. \\ \\
+All sets begin only containing it's index, with it's representative being the index. We will also include the following operations: \\ \\
+$sameSet(x, y)$: Determine if $x$ and $y$ are in the same set by getting their respective representatives and comparing if they are the same or not.
+
+\subsection{Sequential Implementations}
+
+We will examine naïve implementations of $find(x)$ and $unite(x, y)$, and go over the different optimizations that can be applied to them to improve overall time complexity. As we go along the path of representatives, we will call the next representative the parent, and the representative of the set the root.
+
+\lstinputlisting[
+    language=C++,
+    caption={Naïve implementation of $find(x)$.},
+    label=lst:naivefind
+]{./src/DisjointSetUnion/dsu_find.cpp}
+
+\lstinputlisting[
+    language=C++,
+    caption={Naïve implementation of $unite(x, y)$.},
+    label=lst:naiveunite
+]{./src/DisjointSetUnion/dsu_unite.cpp}
+
+These implementations have problems because we have no rules on how we designate who becomes the root of who. We can see here that in the worst case, we can create a long chain of parents, which would make the worst case of $find(x)$ be $O(n)$, with no improvements to happen over time. There are several optimizations that we can do to improve the time complexity. We will first look at linking by size, linking by rank, and linking by random index.
+
+When we link by size, the idea is to maintain the size of each disjoint set, and use the sizes to determine what the new root will be in $unite(x, y)$. When we go to try and unite the two sets, we will make the root of the set that has a larger size be the root of the new combined set. Ties are broken arbitrarily.
+
+\lstinputlisting[
+    language=C++,
+    caption={Implementation of $unite(x, y)$ with linking by size.},
+    label=lst:unitelinkbysize
+]{./src/DisjointSetUnion/dsu_unite_link_by_size.cpp}
+
+When we link by rank, the idea is to maintain the length of the longest path from the root to any other value in the set. When we $unite(x, y)$, we make the root with the higher rank the root of the new combined set. If there is a tie, we arbitrarily choose the root of the new set, and increase the rank by 1.
+
+\lstinputlisting[
+    language=C++,
+    caption={Implementation of $unite(x, y)$ with linking by rank.},
+    label=lst:unitelinkbyrank
+]{./src/DisjointSetUnion/dsu_unite_link_by_rank.cpp}
+
+When we link by random index, the idea is to create a random ordering of the values, and use the position in the ordering to determine who becomes the root. The root with the later position in the ordering becomes the root of the combined set. Since each position is unique, there will never be ties.
+
+\lstinputlisting[
+    language=C++,
+    caption={Implementation of $unite(x, y)$ with linking by random index.},
+    label=lst:unitelinkbyrandomindex
+]{./src/DisjointSetUnion/dsu_unite_link_by_random_index.cpp}
+
+Another point of improvement that can be made is that if the parent of $x$ is $y$ and the parent of $y$ is $z$, since we only care about the root of the whole set, we can get rid of this chain by simply making it so that parent of $x$ is $z$. There are several optimizations for achieving this, being compression, halving, and splitting.
+
+When we do compression, we simply make all the parents on the path are set to the root.
+
+\lstinputlisting[
+    language=C++,
+    caption={Implementation of $find(x, y)$ with compression.},
+    label=lst:findcompression
+]{./src/DisjointSetUnion/dsu_find_compression.cpp}
+
+When we do halving, we replace the parent of every node on the path with it's grandparent.
+
+\lstinputlisting[
+    language=C++,
+    caption={Implementation of $find(x, y)$ with halving.},
+    label=lst:findhalving
+]{./src/DisjointSetUnion/dsu_find_halving.cpp}
+
+When we do splitting, we replace the parent of every other node on the path with it's grandparent.
+
+\lstinputlisting[
+    language=C++,
+    caption={Implementation of $find(x, y)$ with splitting.},
+    label=lst:findsplitting
+]{./src/DisjointSetUnion/dsu_find_splitting.cpp}
+
 \begin{thebibliography}{00}
 \bibitem{b1} G. Eason, B. Noble, and I. N. Sneddon, ``On certain integrals of Lipschitz-Hankel type involving products of Bessel functions,'' Phil. Trans. Roy. Soc. London, vol. A247, pp. 529--551, April 1955.
 \bibitem{b2} J. Clerk Maxwell, A Treatise on Electricity and Magnetism, 3rd ed., vol. 2. Oxford: Clarendon, 1892, pp.68--73.
@@ -207,6 +286,7 @@ WIP
 \bibitem{b5} R. Nicole, ``Title of paper with only first word capitalized,'' J. Name Stand. Abbrev., in press.
 \bibitem{b6} Y. Yorozu, M. Hirano, K. Oka, and Y. Tagawa, ``Electron spectroscopy studies on magneto-optical media and plastic substrate interface,'' IEEE Transl. J. Magn. Japan, vol. 2, pp. 740--741, August 1987 [Digests 9th Annual Conf. Magnetics Japan, p. 301, 1982].
 \bibitem{b7} M. Young, The Technical Writer's Handbook. Mill Valley, CA: University Science, 1989.
+\bibitem{b8} S. V. Jayanti and R. E. Tarjan, ``Concurrent Disjoint Set Union,'' Distributed Computing, vol. 34, pp 413-436, Dec 2021.
 \end{thebibliography}
 \vspace{12pt}
 \color{red}
