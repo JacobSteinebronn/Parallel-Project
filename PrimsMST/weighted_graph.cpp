@@ -24,21 +24,10 @@ int getRandomNode(vector<int> arr)
 }
 
 // arg1 - numNodes
-// arg2 - outfile
 int main(int argc, char* argv[])
 {
     if (argc > 1)
         V = stoi(argv[1]);
-    string filename = "temp.out";
-    if (argc > 2)
-        filename = argv[2];
-    ofstream outfile (filename);
-    if (!outfile.is_open())
-    {
-        cout << "unable to open file" << endl;
-        return 0;
-    }
-    
     int** graph = (int**)(malloc(V*sizeof(int*)));
     srand(time(NULL));
     pair<int, int>* edges = (pair<int, int>*)(malloc(V*VEC_FACT*sizeof(pair<int, int>)));
@@ -75,7 +64,7 @@ int main(int argc, char* argv[])
         graph[end][curr] = graph[curr][end];
         
     }
-    cout << "base MST created" << endl;
+    //cout << "base MST created" << endl;
 
     while (edgeCount < V * VEC_FACT)
     {
@@ -92,11 +81,11 @@ int main(int argc, char* argv[])
 
     }
 
-    outfile << V << endl << edgeCount << endl;
+    cout << V << endl << edgeCount << endl;
 
     for (int i = 0; i < edgeCount; i++)
     {
-        outfile << edges[i].first << "\t" << edges[i].second << "\t" << graph[edges[i].first][edges[i].second] << endl;
+        cout << edges[i].first << "\t" << edges[i].second << "\t" << graph[edges[i].first][edges[i].second] << endl;
     }
     
     return 0;
