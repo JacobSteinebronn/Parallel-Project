@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
             start = rand() % V;
             end = rand() % V;
         }
-        graph[start][end] = rand() % V;
+        graph[start][end] = rand() % (V / 100);
         graph[end][start] = graph[start][end];
         edges[edgeCount++] = pair<int, int>(start,end);
 

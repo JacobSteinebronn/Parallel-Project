@@ -17,6 +17,7 @@
 using namespace std;
 
 int num, num_nodes = 30000;
+bool printEdges = false;
 
 int** graph_generator()
 {
@@ -68,7 +69,7 @@ int minKey(int key[], bool mstSet[])
      // set the outer nest to be parallel so that intialized data is hosted on the correct thread
 #pragma omp parallel
     {
-        num = omp_get_num_threads();
+        //num = omp_get_num_threads();
         //cout << num << endl;
         int index_local = index;
         int min_local = min;
@@ -106,11 +107,21 @@ void printMST(int parent[], int** graph)
         cout << parent[i];
         cout << " - ";
         cout << i;
-        cout <<" \t";
+        cout <<" ";
         cout << (int)graph[i][parent[i]];
         cout << endl;
     }
 		
+}
+
+void printTotalWeight(int parent[], int** graph)
+{
+    unsigned long long sum = 0;
+    for (int i = 1; i < num_nodes; i++)
+    {
+        sum +=graph[i][parent[i]];
+    }
+    cout << sum;
 }
 
 // Function to construct and print MST for
@@ -158,10 +169,15 @@ void primMST(int** graph)
 				parent[v] = u, key[v] = graph[u][v];
 	}
 
-	// print the constructed MST
-	printMST(parent, graph);
+	// print the constructed MST, if user specified
+    if (printEdges)
+	    printMST(parent, graph);
+    // print total MST weight, to check correctness
+    printTotalWeight(parent, graph);
 }
 
+// arg1 - max number of threads
+// arg2 - non-zero if you want edges printed
 int main(int argc, char *argv[])
 {
     int num_threads = 4;
@@ -170,7 +186,8 @@ int main(int argc, char *argv[])
     // Grabbing command line arguments
     if (argc > 1)
         num_threads = stoi(argv[1]);
-   
+    if (argc > 2)
+        printEdges = stoi(argv[2]);
     omp_set_num_threads(num_threads);
     cin >> num_nodes >> num_edges;
 

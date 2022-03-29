@@ -9,6 +9,7 @@ using namespace std;
 
 // Number of vertices in the graph
 int num_nodes = 30000;
+bool printEdges = false;
 
 int** graph_generator()
 {
@@ -58,7 +59,18 @@ void printMST(int parent[], int** graph)
 {
 	cout<<"Edge \tWeight\n";
 	for (int i = 1; i < num_nodes; i++)
-		cout<<parent[i]<<" - "<<i<<" \t"<<graph[i][parent[i]]<<" \n";
+		cout<<parent[i]<<" - "<<i<<" "<<graph[i][parent[i]]<<" \n";
+}
+
+void printTotalWeight(int parent[], int** graph)
+{
+	//cout << "run print weight" << endl;
+    unsigned long long sum = 0;
+    for (int i = 1; i < num_nodes; i++)
+    {
+        sum += graph[i][parent[i]];
+    }
+    cout << sum;
 }
 
 // Function to construct and print MST for
@@ -108,16 +120,16 @@ void primMST(int** graph)
 	}
 
 	// print the constructed MST
-	printMST(parent, graph);
+	if (printEdges)
+		printMST(parent, graph);
+	printTotalWeight(parent, graph);
 }
 
-// Driver code
+// arg1 - printEdges
 int main(int argc, char* argv[])
 {
-    if (argc > 1)
-    {
-        num_nodes = stoi(argv[1]);
-    }
+	if (argc > 1)
+		printEdges = stoi(argv[1]);
 	int num_edges;
 	cin >> num_nodes >> num_edges;
 	// Random graph generation
@@ -142,5 +154,3 @@ int main(int argc, char* argv[])
     //cout << double( clock() - startTime ) / (double)CLOCKS_PER_SEC<< " seconds" << endl;
 	return 0;
 }
-
-// This code is contributed by rathbhupendra
