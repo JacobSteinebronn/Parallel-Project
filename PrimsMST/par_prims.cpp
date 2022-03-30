@@ -5,7 +5,7 @@
 // to compile on windows: g++ -fopenmp par_prims.cpp -o par.exe
 // fopenmp needs to be enabled in GCC to compile
 
-// Command line execution arguments: ./par.out (./par.exe on WINDOWS) #MAXNUMTHREADS #NUMVECTORS
+// Command line execution arguments: ./par.out (./par.exe on WINDOWS) #MAXNUMTHREADS 
 #include <iostream>
 #include <thread>
 #include <mutex>
@@ -186,8 +186,6 @@ int main(int argc, char *argv[])
     // Grabbing command line arguments
     if (argc > 1)
         num_threads = stoi(argv[1]);
-    if (argc > 2)
-        printEdges = stoi(argv[2]);
     omp_set_num_threads(num_threads);
     cin >> num_nodes >> num_edges;
 
