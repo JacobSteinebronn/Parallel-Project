@@ -8,8 +8,10 @@
 # arg4 - base number for graph creation
 # arg5 - numthreads
 # example for the included code: ./completeTesting.sh ../seq_prims.cpp ../par_prims.cpp ../weighted_graph.cpp 1000 4
+
+# create directories for input 
 mkdir ../input
-mkdir ../output
+
 # first, create appropriate graphs (redirect output to keep terminal clean)
 ./createGraphs.sh $3 $4 > graphs.out
 rm graphs.out
@@ -25,4 +27,3 @@ python ../outToCSV.py bench_$4.csv
 
 rm ./runtime.out
 rm -r ../input
-rm -r ../output
