@@ -1,11 +1,13 @@
 #!/bin/bash
-# to use, run the command 'chmod +x completeTesting.sh'
+# to use, first run the command 'chmod +x completeTesting.sh'
+
 # takes in 4 arguments
 # arg1 - sequential program
 # arg2 - parallel program
 # arg3 - graph creation program
 # arg4 - base number for graph creation
 # arg5 - numthreads
+# example for the included code: ./completeTesting.sh ../seq_prims.cpp ../par_prims.cpp ../weighted_graph.cpp 1000 4
 
 # first, create appropriate graphs (redirect output to keep terminal clean)
 ./createGraphs.sh $3 $4 > graphs.out
