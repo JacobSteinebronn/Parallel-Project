@@ -20,7 +20,8 @@ echo $1 > runtime.out
 
 # create csv and print to it
 touch ../csv/bench_$2_$1.csv
-python ../outToCSV.py bench_$2_$1.csv 
+python3 ../outToCSV.py bench_$2_$1.csv 
+python3 ../plot.py ../csv/bench_$2_$1.csv
 
 rm ./runtime.out
 rm -r ../input
