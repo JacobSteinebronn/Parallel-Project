@@ -1,5 +1,5 @@
-declare -a ns=(100 200 500 750 1000 1250 1500 1750 2000 2500 3000 3500 4000 4500 5000)
-# declare -a ns=(100 200 500 1000 1500 2000 3000)
+# declare -a ns=(100 200 500 750 1000 1250 1500 1750 2000 2500 3000 3500 4000 4500 5000)
+declare -a ns=(100 200 250 500 750 1000 1250 1500 2000)
 
 printf "n,"
 for i in "${ns[@]}"
@@ -18,8 +18,8 @@ do
     printf ","
     for i in "${ns[@]}"
     do
-        big_adj/gen.out $i
-        mv ./input.in big_adj/input.in
+        big_adj/genbad.out $i
+        mv ./input2.in big_adj/input.in
         start_time=$(date +%s.%3N)
         for j in {1..1}
         do
