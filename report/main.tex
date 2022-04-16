@@ -206,7 +206,7 @@ Since the edges of the spanning tree need to be added sequentially, the algorith
     caption=,
     label=,
 ]{./src/MST/prims_minkey.cpp}
-
+\subsection{Parallelization}
 The minKey function as shown above can be parallelized by dividing the for loop into subsections and storing the minimum key for a thread locally and comparing these minimums when the threads close.
 
 \lstinputlisting[
@@ -215,10 +215,22 @@ The minKey function as shown above can be parallelized by dividing the for loop 
     label=,
 ]{./src/MST/prims_minkey_par.cpp}
 
-This implementation sustains the correctness of the minKey function in that it will always select the minimum key within the proper set of vertices, but because this is a parallel implementation it is possible that this function will produce a different minKey index than it's sequential counterpart. Therefore, the correctness of the sequential and parallel programs was checked not by listing the each edge present in the MST but by comparing the total weight of the MST from each program.
+This implementation sustains the correctness of the minKey function in that it will always select the minimum key within the proper set of vertices, but because this is a parallel implementation it is possible that this function will produce a different minKey index than it's sequential counterpart. Therefore, the correctness of the sequential and parallel programs was checked by comparing the total weights of each spanning tree rather than checking which edges were included.
 
-\subsection{Test Data}
+\lstinputlisting[
+    language=C++,
+    caption=,
+    label=,
+]{./src/MST/prims_par.cpp}
 
+The Pr
+
+
+\begin{figure}[t]
+    \includegraphics[width=9cm]{report/images/benchprim8.png}
+    \caption{Sequential Prim's vs. Parallel Prim's with 8 threads}
+    \label{fig:prim_8_comparison}
+\end{figure}
 
 \section{Single-Source Shortest Path with Negative Edge Weights}
 What this research hopes to address is the problem of finding shortest path distances in a directed weighted graph from a single source with the additional complication of allowing negative edge weights. We will also address the problem of finding negative sum cycles in such graphs. The two most known algorithms that are applicable to this problem are the Bellman-Ford algorithm and the Floyd-Warshall algorithm. We will explore the parallelization of these algorithms in relation to this problem and their performance.
