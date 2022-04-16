@@ -187,6 +187,12 @@ In the previous section, we analyzed different practices for computing the All-P
 \break
 \newpage
 
+\section{Minimum Spanning Tree}
+The Minimum Spanning Tree (MST) problem is a common architecture building problem that finds the minimum-weighted connected graph of a certain set of connected vertices. The graph will contain V-1 edges where V is the total number of vertices in the graph. This problem can be found in many real life problems such as road construction, circuit design & development, and phone line planning. In the realm of computer science research the MST problem can also be used to approximate NP-Hard problems such as the traveling salesperson. We will be looking at how to properly implement a solution concurrently and compare the runtimes to the sequential implementation.
+
+\subsection{Prim's MST}
+Prim's MST is a greedy approach to the MST problem where the concept is to maintain two sets of vertices: the set of vertices included in the tree, and the vertices yet to be added. As the tree is built, each edge between the two sets are considered and the smallest weighted edge is chosen to be a part of the tree. The minKey function takes in the two sets and returns the index of the minimum weighted edge that connects the two. The sequential implementation can be seen below:
+
 \section{Single-Source Shortest Path with Negative Edge Weights}
 What this research hopes to address is the problem of finding shortest path distances in a directed weighted graph from a single source with the additional complication of allowing negative edge weights. We will also address the problem of finding negative sum cycles in such graphs. The two most known algorithms that are applicable to this problem are the Bellman-Ford algorithm and the Floyd-Warshall algorithm. We will explore the parallelization of these algorithms in relation to this problem and their performance.
 
