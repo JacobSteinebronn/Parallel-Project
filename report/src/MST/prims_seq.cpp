@@ -1,15 +1,11 @@
 void primMST(int** graph)
 {
-	int* parent = (int*)(calloc(num_nodes, sizeof(int)));
-	int* key = (int*)(calloc(num_nodes, sizeof(int)));
-	bool* mstSet = (bool*)(calloc(num_nodes, sizeof(bool)));
-
 	for (int i = 0; i < num_nodes; i++)
 		key[i] = INT_MAX, mstSet[i] = false;
 	key[0] = 0;
 	parent[0] = -1; 
 
-	for (int count = 0; count < num_nodes - 1; count++)
+	for (int c = 0; c < num_nodes - 1; c++)
 	{
 		int u = minKey(key, mstSet);
 

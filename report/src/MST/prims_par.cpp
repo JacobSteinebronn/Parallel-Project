@@ -1,9 +1,5 @@
 void primMST(int** graph)
 {
-	int* parent = (int*)(calloc(num_nodes, sizeof(int)));
-	// Key values used to pick minimum weight edge in cut
-	int* key = (int*)(calloc(num_nodes, sizeof(int)));
-	bool* mstSet = (bool*)(calloc(num_nodes, sizeof(bool)));;
 	for (int i = 0; i < num_nodes; i++)
 		key[i] = INT_MAX, mstSet[i] = false;
 
