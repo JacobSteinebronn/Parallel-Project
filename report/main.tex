@@ -216,21 +216,31 @@ The minKey function as shown above can be parallelized by dividing the for loop 
 ]{./src/MST/prims_minkey_par.cpp}
 
 This implementation sustains the correctness of the minKey function in that it will always select the minimum key within the proper set of vertices, but because this is a parallel implementation it is possible that this function will produce a different minKey index than it's sequential counterpart. Therefore, the correctness of the sequential and parallel programs was checked by comparing the total weights of each spanning tree rather than checking which edges were included.
+\par
+The second point of parallelization comes in the primMST function after the minKey function:
 
 \lstinputlisting[
     language=C++,
     caption=,
     label=,
 ]{./src/MST/prims_par.cpp}
+\subsection{Test Data}
 
-The Pr
+Run-time testing was done on a 12-core CPU, and each test iteration was done with 10 total tests with incremental input sizes.
 
-
-\begin{figure}[t]
+\begin{figure}[h]
     \includegraphics[width=9cm]{report/images/benchprim8.png}
     \caption{Sequential Prim's vs. Parallel Prim's with 8 threads}
     \label{fig:prim_8_comparison}
 \end{figure}
+Running the concurrent solution on a 12-core CPU with 8-threads can see that as input sizes grow, the parallel implementation can produce run-times more than 3 times faster than the sequential algorithm.
+\begin{figure}[h]
+    \includegraphics[width=9cm]{report/images/benchprim12.png}
+    \caption{Sequential Prim's vs. Parallel Prim's with 12 threads}
+    \label{fig:prim_8_comparison}
+\end{figure}
+As the data above indicates, as the number of threads reaches the number of cores the runtime improvements become inconsistent, as each shared-memory operation becomes more computationally expensive. Since testing data was limited by CPU cores, it is possible that even further runtime improvements can be observed on CPUs with 16 or more cores and utilizing more active threads.
+
 
 \section{Single-Source Shortest Path with Negative Edge Weights}
 What this research hopes to address is the problem of finding shortest path distances in a directed weighted graph from a single source with the additional complication of allowing negative edge weights. We will also address the problem of finding negative sum cycles in such graphs. The two most known algorithms that are applicable to this problem are the Bellman-Ford algorithm and the Floyd-Warshall algorithm. We will explore the parallelization of these algorithms in relation to this problem and their performance.
