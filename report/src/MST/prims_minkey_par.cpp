@@ -1,12 +1,9 @@
 int minKey(int key[], bool mstSet[])
 {
 	 int min = INT_MAX, index, i;
-     // set the outer nest to be parallel so that intialized data is hosted on the correct thread
 #pragma omp parallel
     {
-        int index_local = index;
-        int min_local = min;
-        // Run this for-loop concurrently with a nowait condition
+        int index_local = index, min_local = min;
 #pragma omp for nowait
         for (i = 0; i < num_nodes; i++)
         {
