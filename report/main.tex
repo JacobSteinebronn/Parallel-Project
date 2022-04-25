@@ -56,9 +56,7 @@
 \maketitle
 
 \begin{abstract}
-This document is a model and instructions for \LaTeX.
-This and the IEEEtran.cls file define the components of your paper [title, text, heads, etc.]. *CRITICAL: Do Not Use Symbols, Special Characters, Footnotes, 
-or Math in Paper Title or Abstract.
+This project does a shallow dive into concurrent implementation in c++ for 4 graph topics: All-Pairs-Shortest-Path, the Disjoint Set Union data structure, Minimum-Spanning-Tree, and Single-Source-Shortest-Path. Implementations take both correctness and running-time into account, and are benchmarked on a 12-core, 24-thread machine. 
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -176,19 +174,41 @@ In the previous section, we analyzed different practices for computing the All-P
 \end{figure}
 
 
-
-\begin{figure}[t]
+% t(top) h(here) b(bottom)
+\begin{figure}[h]
     \centering
     \includegraphics[width=9cm]{images/benchdijkstra.png}
     \caption{Dijkstra's with Priority Queue vs Dijkstra's with Linear Search on randomly-generated graphs, both with 20 threads}
     \label{fig:dijkstra_both}
 \end{figure}
 
-\break
-\newpage
+\subsection{Parallel Dijkstra's Algorithm Performance in the Worst Case}\label{AA}
+The above results, showing that parallel Dijkstra's with a priority queue for selecting states performs better than using a linear search when the input is a randomly-generated graph (Still within the restrictions outlined earlier). On randomly-generated graphs, we can expect the size of the priority queue to be quite small, since a large majority of the graphs would have edges which are far greater in weight than some shortest path which could circumvent that edge; thus, the number of new states which repeat on unexplored nodes would be low. In fact, the size of the priority queue can be observed to be $O(n)$ on random graphs. However, if we have an adversarial-generated graph, one where the particular implementation of priority-queue Dijkstra's is taken into account, we can get this priority queue to grow with the number of edges in the graph, which is $O(n^2)$. 
+
+Performing a rough analysis of the linear-search versus the priority-queue implementations will illuminate the running time in the average (random graph) versus worst(adversarial graph) case. The linear search implementation always takes exactly $2n^2$ per Dijkstra's call: For each of $i$ iterations, do a single loop of size $n$ to find the source, and then another loop of size $n$ to perform relaxations. This is the same regardless of the graph itself because the edge weights do not affect the time it takes to update the $res$ array or perform the first loop to find the source. However, for the priority-queue implementation, the edge weights strongly influence the running-time in that they influence the size of the priority queue used to find the source for each iteration. In a random graph, the size of the priority queue is expected to be roughly linear, since the expected number of edges in a path is very small. We perform n removals from the priority queue, each of which takes $O(log(n))$, and n insertions, each of which also takes $O(log(n))$. Thus, in the average case, the expected number of operations is roughly $n*log(n) + n*log(n) + n^2$ which is strongly dominated by $n^2$. However, in the worst case, the size of the priority queue is $O(n^2)$; thus, the number of insertions is $n^2$, each taking $log(n^2) = 2log(n)$, so the number of operations in the worst case for this implementation is roughly $2n^2*log(n)$ which, compared to the worst-case for linear search Dijkstra's, is worse by an entire log factor, not to mention the overhead of actually maintaining the priority queue rather than the extremely low-overhead for loop. 
+
+We can improve upon this worst-case runtime in Dijkstra's by making an observation about the priority queue iteself: There are many states inside the priority queue which are contributing to the runtime of adding/removing to the queue that aren't even useful. Consider a graph with 3 nodes $u,v,w$ and a BFS-ordering $u,v,w$: node $u$ will place nodes $v$ and $w$ into the priority queue, then node $v$ might put node $w$ into the queue again, so now node $w$ is in the queue twice, even though only one of the states is actually the minimal distance. We can fix this by instead of maintaining a priority queue of states, we can maintain an ordered set of them. Then, when we want to update the distance of a state, we can remove the old entry in the set for that state, having found a better one, before inserting the new one. That way, even if every node in the graph can be found in the "queue" at one time, it will appear only once, so the size of the "queue" is bounded by $n$ instead of $n^2$. We will still have a worst-case number of insertions being $n^2$, but at least we can speed up the insertions/removals by a factor of two. This can be observed in Fig. \ref{fig:dijkstra_all}
+
+\begin{figure}[t]
+    \lstinputlisting[
+        language=C++,
+        caption=Dijkstra's with Ordered Set instead of Priority Queue
+        label=lst:setdijkstras
+    ]{./src/APSP/dijkstra_set.cpp}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=9cm]{images/benchWorstCase2.png}
+    \caption{Various Parallel Dijkstra's implementations on worst-case graphs}
+    \label{fig:dijkstra_all}
+\end{figure}
+
+
 
 \section{Minimum Spanning Tree}
-The Minimum Spanning Tree (MST) problem is a common architecture building problem that finds the minimum-weighted connected graph of a certain set of connected vertices. The graph will contain V-1 edges where V is the total number of vertices in the graph. This problem can be found in many real life problems such as road construction, circuit design & development, and phone line planning. In the realm of computer science research the MST problem can also be used to approximate NP-Hard problems such as the traveling salesperson. We will be looking at how to properly implement a solution concurrently and compare the runtimes to the sequential implementation.
+The Minimum Spanning Tree (MST) problem is a common architecture building problem that finds the minimum-weighted connected graph of a certain set of connected vertices\cite{b2}. The graph will contain V-1 edges where V is the total number of vertices in the graph. This problem can be found in many real life problems such as road construction, circuit design \& development, and phone line planning. In the realm of computer science research the MST problem can also be used to approximate NP-Hard problems such as the traveling salesperson\cite{b1}. We will be looking at how to properly implement a solution concurrently and compare the runtimes to the sequential implementation.
+\par
 
 \subsection{Prim's MST}
 Prim's MST is a greedy approach to the MST problem where the concept is to maintain two sets of vertices: the set of vertices included in the tree, and the vertices yet to be added. As the tree is built, each edge between the two sets are considered and the smallest weighted edge is chosen to be a part of the tree. The minKey function takes in the two sets and returns the index of the minimum weighted edge that connects the two. The sequential implementation can be seen below:
@@ -229,30 +249,82 @@ The second point of parallelization comes in the primMST function after the minK
 Run-time testing was done on a 12-core CPU, and each test iteration was done with 10 total tests with incremental input sizes.
 
 \begin{figure}[h]
-    \includegraphics[width=9cm]{report/images/benchprim8.png}
+    \includegraphics[width=9cm]{images/benchprim8.png}
     \caption{Sequential Prim's vs. Parallel Prim's with 8 threads}
     \label{fig:prim_8_comparison}
 \end{figure}
 Running the concurrent solution on a 12-core CPU with 8-threads can see that as input sizes grow, the parallel implementation can produce run-times more than 3 times faster than the sequential algorithm.
 \begin{figure}[h]
-    \includegraphics[width=9cm]{report/images/benchprim12.png}
+    \includegraphics[width=9cm]{images/benchprim12.png}
     \caption{Sequential Prim's vs. Parallel Prim's with 12 threads}
-    \label{fig:prim_8_comparison}
+    \label{fig:prim_12_comparison}
 \end{figure}
 As the data above indicates, as the number of threads reaches the number of cores the runtime improvements become inconsistent, as each shared-memory operation becomes more computationally expensive. Since testing data was limited by CPU cores, it is possible that even further runtime improvements can be observed on CPUs with 16 or more cores and utilizing more active threads.
 
-
 \section{Single-Source Shortest Path with Negative Edge Weights}
-What this research hopes to address is the problem of finding shortest path distances in a directed weighted graph from a single source with the additional complication of allowing negative edge weights. We will also address the problem of finding negative sum cycles in such graphs. The two most known algorithms that are applicable to this problem are the Bellman-Ford algorithm and the Floyd-Warshall algorithm. We will explore the parallelization of these algorithms in relation to this problem and their performance.
+What this bit of the research hopes to address is the problem of finding shortest path distances in a directed weighted graph from a single source with the additional complication of allowing negative edge weights. We will also address the problem of finding negative sum cycles in such graphs. The two most known algorithms that are applicable to this problem are the Bellman-Ford algorithm and the Floyd-Warshall algorithm. We will explore the parallelization of these algorithms in relation to this problem and their performance.
 
 \subsection{The Bellman-Ford Algorithm}\label{AA}
-WIP
+
+The Bellman-Ford algorithm is designed to find the shortest path from a single source in a general weighted graph G consisting of a vertex set V and an edge set E. The algorithm is also useful for finding negative cycles that are reachable from the source provided.
+
+It relies on the principle that if all of the edges of of non-negative weight, then a shortest path from the source to some vertex will travel through at most V distinct vertices, and therefore at most V - 1 distinct edges. The algorithm works as follows: initially, a distance array will be set up to store the distance from the source to every other vertex. This distance array will be initially filled with an arbitrarily large value, signifying that we have not found a path from the source to this vertex. The source's distance will then be set to 0. Then, a certain number of iterations will be performed. In a single iteration, every edge will be considered in an arbitrary order, and an update for each edge will take place. For some edge from vertex u to vertex v with weight w, if there exists a path from the source to u that has been found (the distance to u is currently less than our arbitrarily large value), and if the distance from u plus the weight w is less than the currently stored distance to v (or if no path to v from the source has been discovered), then the distance to v will be updated. Then, since for any vertex some shortest path will consist of at most V - 1 edges, then the most number of iterations needed in the worst case is exactly V - 1. Some basic C++ code for this step of the algorithm is provided below:
 
 \lstinputlisting[
     language=C++,
     caption=,
     label=
-]{./src/bellman_ford.cpp}
+]{./src/negative_edge_weights/bellman_ford.cpp}
+
+The next step of the algorithm deals with handling negative sum cycles in the graph. If there is a negative sum cycle in the graph that is reachable from the source, then every node that exists in the cycle will have an indefinitely small shortest path to it. This is because if the cycle has negative sum to traverse the whole cycle, then for any shortest path of sum X, the cycle could be traversed exactly one more time to achieve a shortest path of sum less than X. This is true for any X, therefore the shortest path sum is undefined for these nodes. This proof expands to all nodes that are even reachable by some node on the negative cycle, even if the path from the cycle to the desired node is positive as an infinitely small sum is achievable in the cycle.
+
+To detect this, only a single more iteration of the edge updating process needs to be done. If it is found that a vertex has a shorter distance now after this iteration, then it must be a part of a negative cycle reachable from the source. These nodes will be marked during this process. Then, a multi-source breadth first search algorithm will be performed with the set of sources as the initially marked nodes. The search will mark all nodes that are reachable from the initially marked nodes. At the end of this process, a node being marked signifies that its minimum sum path from the source to itself is infinitely small. An arbitrarily small value can be set in the distance array to show this. Note that some nodes can have negative shortest path distances without being infinitely negative. Some simple code to find these nodes is shown below:
+
+\lstinputlisting[
+    language=C++,
+    caption=,
+    label=
+]{./src/negative_edge_weights/negative_cycle_detection.cpp}
+
+The overall run time for this complete algorithm is O(V * E). It can be seen that the major bottleneck of the algorithm is looping through each edge V - 1 times. The additional Breadth-First-Search at the end to find the special marked nodes is a run time of O(V + E), so the focus of parallelization on the algorithm will be directed towards this O(V * E) double for loop. It is imperative that all edges perform an update on our distance array for one iteration before any edges of the next iteration perform an update. A naive approach to a parallelization of these updates can therefore be as follows: a single parent thread will loop for each iteration of edge updates. Then, the edge updates will be divided evenly among the worker threads. each thread will loop over its selected section of edges, and prepare to make an update for each edge. For some edge from vertex u to vertex v with weight w, the thread will need to make sure while reading the distance table at u and writing to the distance table at vertex v that no other thread modifies these values. A simple fix to this problem is to create a lock for each vertex. When a thread goes to read/modify these values, it locks the two locks for these vertices, then performs the check and update, and then unlocks these locks. Some example C++ code is shown below:
+
+\lstinputlisting[
+    language=C++,
+    caption=,
+    label=
+]{./src/negative_edge_weights/bellman_ford_parallel_deadlock_floop.cpp}
+
+\lstinputlisting[
+    language=C++,
+    caption=,
+    label=
+]{./src/negative_edge_weights/bellman_ford_parallel_deadlock_thread_stuff.cpp}
+
+The first thing that can be noted about this implementation is that the locks will block the threads quite frequently. A good portion of the time, a thread will be waiting for a lock to unlock before it can make a check/update. This causes a significant loss of efficiency. Not only this, but this implementation also opens up the possibility of deadlock. Since each thread will attempt to lock two different threads sequentially, a situation could arise in which one thread takes a resource needed by another at the same time the other thread takes the resource now needed by the original thread. Then both threads would hang, waiting on each other to give up access to the needed resources.
+
+Both of these issues can be avoided by making the distance array an array of atomic integers. This allows threads to atomically read the distances to the vertices to check if an update is needed, and also atomically write new distances for needed updates. The updated code is shown below:
+
+\lstinputlisting[
+    language=C++,
+    caption=,
+    label=
+]{./src/negative_edge_weights/bellman_ford_parallel_better.cpp}
+
+This removes the need for locks offering better performance. One final issue that can be noted is the recreation and destruction of all threads at the end of each iteration. These operations are expensive. Rather than recreating all threads and joining them at the end of every iteration, they can be created all at once and communicate with each other. What needs to be maintained is that all edge relaxations from one iteration be conducted before any of the next. The threads can therefore signal if they are working or waiting for all other threads to wrap up their computations for this current iteration. This can be done by counting the number of currently working threads via an atomic integer. When a thread is entering its workload, it adds one to the counter. Then, when it has finished, it decrements this counter and waits for all other threads to be finished. It will know everyone is done when the counter reaches 0. A simple implementation is shown below:
+
+\lstinputlisting[
+    language=C++,
+    caption=,
+    label=
+]{./src/negative_edge_weights/thread_creation_final.cpp}
+
+\lstinputlisting[
+    language=C++,
+    caption=,
+    label=
+]{./src/negative_edge_weights/bellman_ford_parallel_final.cpp}
+
+After the running of benchmarks, The only comparable parallelization implementation is the final implementation. The first two implementations struggled to show any efficiency improvements on specific graphs, and ended up being dramatically slower on large graphs due to the locking and thread creation issues mentioned earlier. The final and best implementation with 10 concurrent threads performed well. On average in very large random graphs, the algorithm is about two to three times faster in practice than the standard single-threaded algorithm.
 
 \section{The Disjoint Set Union Problem}
 
@@ -273,13 +345,13 @@ We will examine naïve implementations of $find(x)$ and $unite(x, y)$, and go ov
     language=C++,
     caption={Naïve implementation of $find(x)$.},
     label=lst:naivefind
-]{./src/DisjointSetUnion/dsu_find.cpp}
+]{./src/disjoint_set_union/dsu_find.cpp}
 
 \lstinputlisting[
     language=C++,
     caption={Naïve implementation of $unite(x, y)$.},
     label=lst:naiveunite
-]{./src/DisjointSetUnion/dsu_unite.cpp}
+]{./src/disjoint_set_union/dsu_unite.cpp}
 
 These implementations have problems because we have no rules on how we designate who becomes the root of who. We can see here that in the worst case, we can create a long chain of parents, which would make the worst case of $find(x)$ be $O(n)$, with no improvements to happen over time. There are several optimizations that we can do to improve the time complexity. We will first look at linking by size, linking by rank, and linking by random index.
 
@@ -289,7 +361,7 @@ When we link by size, the idea is to maintain the size of each disjoint set, and
     language=C++,
     caption={Implementation of $unite(x, y)$ with linking by size.},
     label=lst:unitelinkbysize
-]{./src/DisjointSetUnion/dsu_unite_link_by_size.cpp}
+]{./src/disjoint_set_union/dsu_unite_link_by_size.cpp}
 
 When we link by rank, the idea is to maintain the length of the longest path from the root to any other value in the set. When we $unite(x, y)$, we make the root with the higher rank the root of the new combined set. If there is a tie, we arbitrarily choose the root of the new set, and increase the rank by 1.
 
@@ -297,7 +369,7 @@ When we link by rank, the idea is to maintain the length of the longest path fro
     language=C++,
     caption={Implementation of $unite(x, y)$ with linking by rank.},
     label=lst:unitelinkbyrank
-]{./src/DisjointSetUnion/dsu_unite_link_by_rank.cpp}
+]{./src/disjoint_set_union/dsu_unite_link_by_rank.cpp}
 
 When we link by random index, the idea is to create a random ordering of the values, and use the position in the ordering to determine who becomes the root. The root with the later position in the ordering becomes the root of the combined set. Since each position is unique, there will never be ties.
 
@@ -305,7 +377,7 @@ When we link by random index, the idea is to create a random ordering of the val
     language=C++,
     caption={Implementation of $unite(x, y)$ with linking by random index.},
     label=lst:unitelinkbyrandomindex
-]{./src/DisjointSetUnion/dsu_unite_link_by_random_index.cpp}
+]{./src/disjoint_set_union/dsu_unite_link_by_random_index.cpp}
 
 Another point of improvement that can be made is that if the parent of $x$ is $y$ and the parent of $y$ is $z$, since we only care about the root of the whole set, we can get rid of this chain by simply making it so that parent of $x$ is $z$. There are several optimizations for achieving this, being compression, halving, and splitting.
 
@@ -315,7 +387,7 @@ When we do compression, we simply make all the parents on the path are set to th
     language=C++,
     caption={Implementation of $find(x, y)$ with compression.},
     label=lst:findcompression
-]{./src/DisjointSetUnion/dsu_find_compression.cpp}
+]{./src/disjoint_set_union/dsu_find_compression.cpp}
 
 When we do halving, we replace the parent of every node on the path with it's grandparent.
 
@@ -323,7 +395,7 @@ When we do halving, we replace the parent of every node on the path with it's gr
     language=C++,
     caption={Implementation of $find(x, y)$ with halving.},
     label=lst:findhalving
-]{./src/DisjointSetUnion/dsu_find_halving.cpp}
+]{./src/disjoint_set_union/dsu_find_halving.cpp}
 
 When we do splitting, we replace the parent of every other node on the path with it's grandparent.
 
@@ -331,20 +403,14 @@ When we do splitting, we replace the parent of every other node on the path with
     language=C++,
     caption={Implementation of $find(x, y)$ with splitting.},
     label=lst:findsplitting
-]{./src/DisjointSetUnion/dsu_find_splitting.cpp}
+]{./src/disjoint_set_union/dsu_find_splitting.cpp}
 
 \begin{thebibliography}{00}
-\bibitem{b1} G. Eason, B. Noble, and I. N. Sneddon, ``On certain integrals of Lipschitz-Hankel type involving products of Bessel functions,'' Phil. Trans. Roy. Soc. London, vol. A247, pp. 529--551, April 1955.
-\bibitem{b2} J. Clerk Maxwell, A Treatise on Electricity and Magnetism, 3rd ed., vol. 2. Oxford: Clarendon, 1892, pp.68--73.
-\bibitem{b3} I. S. Jacobs and C. P. Bean, ``Fine particles, thin films and exchange anisotropy,'' in Magnetism, vol. III, G. T. Rado and H. Suhl, Eds. New York: Academic, 1963, pp. 271--350.
-\bibitem{b4} K. Elissa, ``Title of paper if known,'' unpublished.
-\bibitem{b5} R. Nicole, ``Title of paper with only first word capitalized,'' J. Name Stand. Abbrev., in press.
-\bibitem{b6} Y. Yorozu, M. Hirano, K. Oka, and Y. Tagawa, ``Electron spectroscopy studies on magneto-optical media and plastic substrate interface,'' IEEE Transl. J. Magn. Japan, vol. 2, pp. 740--741, August 1987 [Digests 9th Annual Conf. Magnetics Japan, p. 301, 1982].
-\bibitem{b7} M. Young, The Technical Writer's Handbook. Mill Valley, CA: University Science, 1989.
-\bibitem{b8} S. V. Jayanti and R. E. Tarjan, ``Concurrent Disjoint Set Union,'' Distributed Computing, vol. 34, pp 413-436, Dec 2021.
+\bibitem{b1}Seo, Jarim. “Parallel Implementation of a Minimum Spanning Tree Algorithm.” SEO-THESIS-2020, Texas State University, Dec. 2020, https://digital.library.txstate.edu/bitstream/handle/10877/12921/SEO-THESIS-2020.pdf?sequence=1\&amp;isAllowed=y. 
+\bibitem{b2}“Prim's Minimum Spanning Tree (MST): Greedy Algo-5.” GeeksforGeeks, 18 Jan. 2022, https://www.geeksforgeeks.org/prims-minimum-spanning-tree-mst-greedy-algo-5/. 
+
+\bibitem{b3}Graves, Jeffrey A. Parallelizing Single Source Shortest Path with OpenSHMEM. United States: N. p., 2017. Web.
+
 \end{thebibliography}
-\vspace{12pt}
-\color{red}
-IEEE conference templates contain guidance text for composing and formatting conference papers. Please ensure that all template text is removed from your conference paper prior to submission to the conference. Failure to remove the template text from your paper may result in your paper not being published.
 
 \end{document}
