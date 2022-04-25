@@ -1,4 +1,5 @@
 The report main.tex is found at /report/main.tex, and everything needed to compile it is found in /report/
+We also have the PDF format in /report/ if that's easier for you to view. 
 
 All Pairs Shortest Path:
 Everything is contained in /AllPairsShortestPath/
